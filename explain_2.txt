@@ -1,0 +1,21 @@
+从五大联赛所有俱乐部中，选择某一（23/24）赛季，选出前N（20）个最活跃的俱乐部，画它们之间的转会流动。
+
+
+
+当单笔转会 ≥ 70000000欧的球员的名字会在所在边显示姓名
+
+
+采用 Kamada–Kawai 力导向布局。该方法将网络视为一个“弹簧系统”，假设图论距离较近的节点之间存在更强的吸引力，从而在几何空间中被拉得更近，而联系较弱的节点则被推到外围。
+转会联系频繁、资金流动规模大的俱乐部 会自然聚集在网络中心，节点之间的距离较小；联系较少或金额较小的俱乐部分布在图的边缘区域，因此图形上自然出现英超为中心、德甲/意甲/法甲若干节点向其辐射的格局。
+
+
+主要趋势：
+1.英超是主要买方市场，多个英超节点（Chelsea、Manchester United、Manchester City、Arsenal、Tottenham Hotspur等）位于图的中心且节点明显更大，入边多且粗，表明 2023/24 赛季英超总体净进口资金、购买力最强。
+
+英超内部代表性大单：West Ham United→ Arsenal（Declan Rice），Brighton and Hove Albion→ Chelsea（Moises Caicedo）。
+
+德甲→英超代表性大单：RasenBallsport Leipzig → Manchester City（Josko Gvardiol）、RasenBallsport Leipzig → Liverpool（Dominik Szoboszlai）。
+
+2.德甲是关键供给端,RasenBallsport Leipzig 等节点虽不在最中心，但有多条向英超输出的粗边，显示德甲在高端球员外流中的“供给”角色。
+
+3.英超内部资金流充沛、价格昂贵。同联盟之间也出现超大额（Declan Rice、Moises Caicedo），显示英超内部市场的高流动性与高价格。
