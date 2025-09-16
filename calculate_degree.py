@@ -1,17 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 compute_club_degree.py
 
-从 Kaggle: davidcariboo/player-scores 的 transfers.csv（或同结构数据）计算：
-- 每一年，每个俱乐部的 in_degree / out_degree / degree
-- 过滤掉俱乐部名包含 ["Retired", "Without Club", "Unknown"] 的记录
-- 为 (year, club_id) 选一个代表名称（当年出现次数最多；并列取字母序最小）
+- 计算每一年，每个俱乐部的 in_degree / out_degree / degree --out_degree
+- 过滤掉俱乐部名包含 ["Retired", "Without Club", "Unknown"] 的记录 --out_clean
+- 为 (year, club_id) 选一个代表名称（同一个id有多个相似名称）（取当年出现次数最多；并列取字母序最小）
 
 用法示例：
     python compute_club_degree.py \
-        --csv fc94b8f0-56f7-4c13-838d-adbbb4fc1bed.csv \
+        --csv .csv \
         --out_degree club_degree_by_year.csv \
         --out_clean transfers_clean.csv
 """
@@ -25,7 +22,8 @@ import pandas as pd
 
 
 def pick_col(df: pd.DataFrame, candidates: List[str], required: bool = True) -> Optional[str]:
-    """从若干候选列名中挑选存在于 df.columns 的那个。"""
+    """从若干候选列名中挑选存在于 df.columns 的那个 
+    同样字段可能有不同的写法"""
     for c in candidates:
         if c in df.columns:
             return c
@@ -50,10 +48,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     args = build_parser().parse_args()
 
-    # 读取
-    df = pd.read_csv(args.csv, low_memory=False)
+    df = pd.read_csv(args.csv, low_memory=False)#让 pandas 一次性读完整个文件，再决定列的类型
 
-    # 列名适配（按你给的信息：from_club_name / to_club_name / transfer_date）
+    # 列名适配
     col_transfer_date = pick_col(df, ["transfer_date", "date", "Transfer_date"])
     col_from_name     = pick_col(df, ["from_club_name", "from_club", "from", "from_team_name"])
     col_to_name       = pick_col(df, ["to_club_name", "to_club", "to", "to_team_name"])
@@ -62,16 +59,17 @@ def main():
 
     # 提取年份
     df["year"] = pd.to_datetime(df[col_transfer_date], errors="coerce").dt.year.astype("Int64")
-
-    # 年份范围过滤（如果指定）
+    # pd.to_datetime(..., errors="coerce") 会把无法解析的日期变成 NaT   .dt.year提取年份
+    
+    # 年份范围过滤
     if args.year_min is not None:
         df = df[df["year"].notna() & (df["year"] >= args.year_min)]
     if args.year_max is not None:
         df = df[df["year"].notna() & (df["year"] <= args.year_max)]
 
-    # 黑名单过滤（名字包含关键字就剔除；大小写不敏感，包含即可）
+    # 黑名单过滤（大小写不敏感）
     black_tokens = [t.strip().casefold() for t in args.blacklist.split(",") if t.strip()]
-
+    #.casefold()：全部转小写  .split(",")：按逗号切分成一个个词  t.strip()：去掉前后空格
     def contains_black(name) -> bool:
         if pd.isna(name):
             return False
@@ -86,7 +84,7 @@ def main():
     # -------------------------------
     # in-degree: 以 to 侧 club_id 累计
     to_df = df_clean[[col_to_id, col_to_name, "year"]].dropna(subset=[col_to_id, "year"]).copy()
-    to_df.rename(columns={col_to_id: "club_id", col_to_name: "club_name"}, inplace=True)
+    to_df.rename(columns={col_to_id: "club_id", col_to_name: "club_name"}, inplace=True) #在原df上直接修改
     to_df["in_degree"] = 1
 
     # out-degree: 以 from 侧 club_id 累计
@@ -95,11 +93,11 @@ def main():
     from_df["out_degree"] = 1
 
     # 聚合
-    in_deg = to_df.groupby(["year", "club_id"], dropna=False)["in_degree"].sum().reset_index()
+    in_deg = to_df.groupby(["year", "club_id"], dropna=False)["in_degree"].sum().reset_index() #["in_degree"].sum()
     out_deg = from_df.groupby(["year", "club_id"], dropna=False)["out_degree"].sum().reset_index()
 
-    deg = pd.merge(in_deg, out_deg, on=["year", "club_id"], how="outer")
-    deg["in_degree"] = deg["in_degree"].fillna(0).astype(int)
+    deg = pd.merge(in_deg, out_deg, on=["year", "club_id"], how="outer") #pd.merge(..., on=["year","club_id"])以 年份 + 俱乐部ID 为主键进行表连接
+    deg["in_degree"] = deg["in_degree"].fillna(0).astype(int) #how="outer"：外连接，确保即使某俱乐部只有转入或只有转出，也不会丢掉。
     deg["out_degree"] = deg["out_degree"].fillna(0).astype(int)
     deg["degree"] = deg["in_degree"] + deg["out_degree"]
 
