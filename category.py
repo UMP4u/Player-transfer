@@ -1,7 +1,11 @@
 import pandas as pd
-
+'''
+输入club_degree_by_year.csv
+统计每个俱乐部在2000-2024年的 总转入 / 总转出 / 总转会次数；
+按 buyer/seller/balanced 分类
+'''
 # 读取数据
-file_path = "D:\\Desktop\\workspace\\workspace\\football\\club_degree_by_year.csv"
+file_path = "D:\\Desktop\\workspace\\workspace\\football\\new_data\\club_degree_by_year.csv"
 df = pd.read_csv(file_path)
 
 # 过滤年份 2000–2024

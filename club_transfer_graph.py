@@ -1,5 +1,10 @@
-# club_transfer_graph.py
-# -*- coding: utf-8 -*-
+'''
+构建足球俱乐部转会网络图
+
+导出 边表 CSV（from, to, weight, unique_players）。
+导出 GEXF 图文件，可以直接在 Gephi 里做复杂可视化。
+'''
+
 import argparse, math, unicodedata
 from pathlib import Path
 
