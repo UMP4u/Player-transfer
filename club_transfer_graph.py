@@ -127,7 +127,7 @@ def visualize_pretty(
     G: nx.DiGraph,
     out_png_path: str,
     max_nodes: int = 20000,
-    draw_edges: bool = True,
+    draw_edges: bool = False,    # 是否绘制边
     edge_alpha: float = 0.06,
     node_min: int = 2,
     node_max: int = 16,
